@@ -18,26 +18,26 @@ const levels: Level[] = [
   // Easy
   { id: 1, target: 50, rule: "offByOne", hint: "So close, yet so far..." },
   { id: 2, target: 142, rule: "plusHundred", hint: "There's a constant intruder..." },
-  { id: 3, target: 64, rule: "doubled", hint: "Seeing double?" },
+  { id: 3, target: 64, rule: "doubled", hint: "Everything feels inflated..." },
   { id: 4, target: 58, rule: "reverseDigits", hint: "Mirror, mirror..." },
-  { id: 5, target: 25, rule: "brokenSubtraction", hint: "Taking away feels like giving..." },
+  { id: 5, target: 75, rule: "complementTo100", hint: "The glass is half empty..." },
   // Medium
-  { id: 6, target: 25, rule: "absoluteValue", hint: "Always looking on the bright side..." },
-  { id: 7, target: 25, rule: "halved", hint: "Only getting part of the picture..." },
-  { id: 8, target: 735, rule: "stuckFive", hint: "An uninvited guest at the end..." },
-  { id: 9, target: 20, rule: "swapPlusAndTimes", hint: "Imposters among the operators..." },
-  { id: 10, target: -42, rule: "negated", hint: "Through the looking glass..." },
+  { id: 6, target: 25, rule: "halved", hint: "Only getting part of the picture..." },
+  { id: 7, target: 735, rule: "stuckFive", hint: "An uninvited guest at the end..." },
+  { id: 8, target: 20, rule: "swapPlusAndTimes", hint: "Imposters among the operators..." },
+  { id: 9, target: -42, rule: "negated", hint: "Through the looking glass..." },
+  { id: 10, target: 52, rule: "digitRotation", hint: "The end comes to the beginning..." },
   // Medium-Hard
   { id: 11, target: 99, rule: "timesThree", hint: "Third time's the charm..." },
-  { id: 12, target: 100, rule: "brokenDivision", hint: "Splitting up isn't working..." },
-  { id: 13, target: 89, rule: "lastTwoDigits", hint: "The beginning gets lost..." },
-  { id: 14, target: 7, rule: "firstDigitOnly", hint: "A brutal truncation..." },
-  { id: 15, target: 100, rule: "roundToTen", hint: "This calculator prefers estimates..." },
+  { id: 12, target: 24, rule: "digitProduct", hint: "Digits working together..." },
+  { id: 13, target: 50, rule: "sumOfSquares", hint: "Each digit has power..." },
+  { id: 14, target: 9, rule: "digitalRoot", hint: "Reduce until you can't..." },
+  { id: 15, target: 16, rule: "collatz", hint: "Even and odd play different games..." },
   // Hard
-  { id: 16, target: 45, rule: "ignoreZeros", hint: "Nothing becomes... nothing..." },
-  { id: 17, target: 18, rule: "digitSum", hint: "Compression at its finest..." },
-  { id: 18, target: 123, rule: "sortDigits", hint: "Order from chaos..." },
-  { id: 19, target: 64, rule: "onesComplement", hint: "Every digit has an opposite..." },
+  { id: 16, target: 18, rule: "digitSum", hint: "Compression at its finest..." },
+  { id: 17, target: 27, rule: "kaprekar", hint: "Chaos and order collide..." },
+  { id: 18, target: 64, rule: "onesComplement", hint: "Every digit has an opposite..." },
+  { id: 19, target: 7, rule: "modulo13", hint: "A baker's dozen leaves something behind..." },
   { id: 20, target: 169, rule: "squared", hint: "Find the root of the problem..." },
 ];
 
@@ -74,12 +74,8 @@ const App: React.FC = () => {
         const reversed = digits.split('').reverse().join('');
         return isNegative ? '-' + reversed : reversed; }
 
-      case 'brokenSubtraction':
-        // Handled in evaluateExpression
-        return result.toString();
-
-      case 'absoluteValue':
-        return Math.abs(result).toString();
+      case 'complementTo100':
+        return (100 - result).toString();
 
       case 'halved':
         return Math.round(result / 2).toString();
@@ -94,42 +90,53 @@ const App: React.FC = () => {
       case 'negated':
         return (-result).toString();
 
+      case 'digitRotation':
+        { const str = Math.abs(result).toString();
+        if (str.length < 2) return result.toString();
+        const rotated = str.slice(1) + str[0];
+        return result < 0 ? '-' + rotated : rotated; }
+
       case 'timesThree':
         return (result * 3).toString();
 
-      case 'brokenDivision':
-        // Handled in evaluateExpression
-        return result.toString();
+      case 'digitProduct':
+        { const absStr = Math.abs(result).toString();
+        const product = absStr.split('').reduce((acc, d) => acc * parseInt(d), 1);
+        return result < 0 ? (-product).toString() : product.toString(); }
 
-      case 'lastTwoDigits':
-        { const num = Math.abs(result) % 100;
-        return result < 0 ? (-num).toString() : num.toString(); }
+      case 'sumOfSquares':
+        { const absStr = Math.abs(result).toString();
+        const sum = absStr.split('').reduce((acc, d) => acc + parseInt(d) ** 2, 0);
+        return result < 0 ? (-sum).toString() : sum.toString(); }
 
-      case 'firstDigitOnly':
-        { const str = Math.abs(result).toString();
-        return result < 0 ? '-' + str[0] : str[0]; }
+      case 'digitalRoot':
+        { const abs = Math.abs(result);
+        if (abs < 10) {
+          return (result < 0 ? -abs * 2 : abs * 2).toString();
+        }
+        let n = abs;
+        while (n >= 10) {
+          n = n.toString().split('').reduce((acc, d) => acc + parseInt(d), 0);
+        }
+        return result < 0 ? (-n).toString() : n.toString(); }
 
-      case 'roundToTen':
-        return (Math.round(result / 10) * 10).toString();
-
-      case 'ignoreZeros':
-        { const str = result.toString();
-        const isNegative = str.startsWith('-');
-        const digits = isNegative ? str.slice(1) : str;
-        const noZeros = digits.replace(/0/g, '') || '0';
-        return isNegative ? '-' + noZeros : noZeros; }
+      case 'collatz':
+        { const n = Math.abs(result);
+        const next = n % 2 === 0 ? n / 2 : 3 * n + 1;
+        return result < 0 ? (-next).toString() : next.toString(); }
 
       case 'digitSum':
         { const absStr = Math.abs(result).toString();
         const sum = absStr.split('').reduce((acc, d) => acc + parseInt(d), 0);
         return result < 0 ? (-sum).toString() : sum.toString(); }
 
-      case 'sortDigits':
-        { const str = result.toString();
-        const isNegative = str.startsWith('-');
-        const digits = isNegative ? str.slice(1) : str;
-        const sorted = digits.split('').sort().join('');
-        return isNegative ? '-' + sorted : sorted; }
+      case 'kaprekar':
+        { const absStr = Math.abs(result).toString().padStart(2, '0');
+        const digits = absStr.split('');
+        const desc = digits.slice().sort((a, b) => b.localeCompare(a)).join('');
+        const asc = digits.slice().sort().join('');
+        const diff = parseInt(desc) - parseInt(asc);
+        return result < 0 ? (-diff).toString() : diff.toString(); }
 
       case 'onesComplement':
         { const str = result.toString();
@@ -137,6 +144,14 @@ const App: React.FC = () => {
         const digits = isNegative ? str.slice(1) : str;
         const complemented = digits.split('').map(d => (9 - parseInt(d)).toString()).join('');
         return isNegative ? '-' + complemented : complemented; }
+
+      case 'modulo13':
+        { const abs = Math.abs(result);
+        if (abs < 13) {
+          return (result < 0 ? -(abs + 13) : abs + 13).toString();
+        }
+        const mod = abs % 13;
+        return result < 0 ? (-mod).toString() : mod.toString(); }
 
       case 'squared':
         return (result * result).toString();
@@ -148,17 +163,9 @@ const App: React.FC = () => {
 
   const evaluateExpression = (expr: string): number => {
     try {
-      // Handle rules that modify the expression
-      if (level.rule === 'brokenSubtraction') {
-        expr = expr.replace(/-/g, '+');
-      }
       if (level.rule === 'swapPlusAndTimes') {
         expr = expr.replace(/\+/g, '§').replace(/\*/g, '+').replace(/§/g, '*');
       }
-      if (level.rule === 'brokenDivision') {
-        expr = expr.replace(/\//g, '*');
-      }
-
       return Function('"use strict"; return (' + expr + ')')();
     } catch {
       return 0;
