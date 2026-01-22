@@ -4,6 +4,8 @@ A puzzle game where the calculator doesn't work right. Each level has a hidden r
 
 20 levels from easy to hard.
 
+Try it out here: https://broken-calculator-tau.vercel.app/
+
 ## Run locally
 
 ```bash
